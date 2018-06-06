@@ -1,0 +1,25 @@
+name:                versioning
+version:             0.1.0.0
+synopsis:            Type-safe data versioning
+description:         Type-safe data versioning
+license:             Apache-2.0
+license-file:        LICENSE
+author:              Lorenzo Tabacchini
+maintainer:          lortabac@gmx.com
+copyright:           (c) 2018 Lorenzo Tabacchini
+category:            Data
+build-type:          Simple
+extra-source-files:  ChangeLog.md
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Versioning.Base
+                     , Versioning.Upgrade
+                     , Versioning.JSON
+                     , Versioning.Example
+  build-depends:       base >=4.11 && <4.12
+                     , aeson
+                     , bytestring
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  ghc-options:       -Wall
