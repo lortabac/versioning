@@ -38,6 +38,11 @@ upgradeRec :: Rec V1 -> Rec V3
 upgradeRec = upgrade
 ```
 
+## Inspiration
+
+The `Since` type family is a suggestion that late Ertugrul Soylemez's (a.k.a. ertes) gave me on IRC.
+The rest is just an elaboration on that base idea.
+
 ## License
 
     Copyright 2018 Lorenzo Tabacchini
