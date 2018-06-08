@@ -16,10 +16,21 @@ library
   exposed-modules:     Versioning.Base
                      , Versioning.Upgrade
                      , Versioning.JSON
-                     , Versioning.Example
   build-depends:       base >=4.11 && <4.12
                      , aeson
                      , bytestring
   hs-source-dirs:      src
+  default-language:    Haskell2010
+  ghc-options:       -Wall
+
+test-suite tests
+  type:                exitcode-stdio-1.0
+  main-is:             Main.hs
+  build-depends:       base >=4.11 && <4.12
+                     , aeson
+                     , bytestring
+                     , hspec
+                     , versioning
+  hs-source-dirs:      tests
   default-language:    Haskell2010
   ghc-options:       -Wall
