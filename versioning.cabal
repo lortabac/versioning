@@ -17,8 +17,8 @@ library
                      , Versioning.Upgrade
                      , Versioning.JSON
   build-depends:       base >=4.11 && <4.12
-                     , aeson
-                     , bytestring
+                     , aeson >=1.0 && <1.5
+                     , bytestring >=0.10 && <0.11
   hs-source-dirs:      src
   default-language:    Haskell2010
   ghc-options:       -Wall
@@ -27,9 +27,9 @@ test-suite tests
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
   build-depends:       base >=4.11 && <4.12
-                     , aeson
-                     , bytestring
-                     , hspec
+                     , aeson >=1.0 && <1.5
+                     , bytestring >=0.10 && <0.11
+                     , hspec >=2.0 && <2.6
                      , versioning
   hs-source-dirs:      tests
   default-language:    Haskell2010
