@@ -15,6 +15,8 @@ data Rec v = Rec
     }
 ```
 
+### Upcasting
+
 Thanks to this encoding we gain the ability to iterate on a range of versions.
 
 For example, once we define how to `adapt` from each version to the next,
@@ -37,6 +39,8 @@ instance Adapt V2 V3 Rec where
 upgradeRec :: Rec V1 -> Rec V3
 upgradeRec = upgrade
 ```
+
+### JSON decoding
 
 If we know how to decode each version from JSON,
 we can decode a JSON string by trying all the versions
