@@ -54,6 +54,32 @@ decodeRec :: ByteString -> Maybe (Rec V3)
 decodeRec = decodeAnyVersion
 ```
 
+#### Using a decoded object
+
+Sometimes, instead of upgrading,
+we need to use the decoded object at its original version.
+
+In order to do this we have to define a type-class and provide enough instances
+to be able to work with any version up to the most recent one.
+
+We can then use `withAnyVersion` to decode from JSON and apply a function
+to the decoded object.
+
+```
+-- | Show an object, whatever its version
+class ShowAnyVersion (a :: V -> *) (v :: V) where
+    showAnyVersion :: a v -> String
+
+instance Show (Rec v) => ShowAnyVersion Rec v where
+    showAnyVersion = show
+
+-- Specify that the return type of our function is a String
+type instance Applied ShowAnyVersion Rec = String
+
+decodeRecAndShow :: ByteString -> Maybe String
+decodeRecAndShow = withAnyVersion @ShowAnyVersion @V3 @Rec showAnyVersion
+```
+
 ## Inspiration
 
 The `Since` type family is a suggestion that late Ertugrul Soylemez's (a.k.a. ertes) gave me on IRC.
