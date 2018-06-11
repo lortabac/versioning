@@ -7,7 +7,7 @@ The addition or removal of a field can be expressed through the `Since` and `Unt
 
 Example:
 
-```
+```haskell
 data Rec v = Rec
     { foo :: Int               -- this field exists in all versions
     , bar :: Since V2 v Bool   -- this field has been introduced in V2
@@ -22,7 +22,7 @@ Thanks to this encoding we gain the ability to iterate on a range of versions.
 For example, once we define how to `adapt` from each version to the next,
 we can `upgrade` across multiple versions automatically:
 
-```
+```haskell
 instance Adapt V1 V2 Rec where
     adapt rec = rec
         { bar = False   -- this field is new in V2, we set it to a default value
@@ -49,7 +49,7 @@ and upgrade the decoded object to the latest version.
 
 This is all done automatically thanks to the `DecodeAnyVersion` class.
 
-```
+```haskell
 decodeRec :: ByteString -> Maybe (Rec V3)
 decodeRec = decodeAnyVersion
 ```
@@ -65,7 +65,7 @@ to be able to work with any version up to the most recent one.
 We can then use `withAnyVersion` to decode from JSON and apply a function
 to the decoded object.
 
-```
+```haskell
 -- | Show an object, whatever its version
 class ShowAnyVersion (a :: V -> *) (v :: V) where
     showAnyVersion :: a v -> String
