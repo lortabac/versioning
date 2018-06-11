@@ -38,6 +38,17 @@ upgradeRec :: Rec V1 -> Rec V3
 upgradeRec = upgrade
 ```
 
+If we know how to decode each version from JSON,
+we can decode a JSON string by trying all the versions
+from the newest to the oldest until we succeed
+and upgrade the decoded object to the latest version.
+This is all done automatically thanks to the 'DecodeAnyVersion' class.
+
+```
+decodeRec :: ByteString -> Maybe (Rec V3)
+decodeRec = decodeAnyVersion
+```
+
 ## Inspiration
 
 The `Since` type family is a suggestion that late Ertugrul Soylemez's (a.k.a. ertes) gave me on IRC.
