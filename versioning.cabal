@@ -1,7 +1,9 @@
 name:                versioning
 version:             0.1.0.0
-synopsis:            Type-safe data versioning
-description:         Type-safe data versioning
+synopsis:            Type-safe data versioning.
+description:         This package provides various tools to deal with
+                     data versioning in a type-safe way.
+homepage:            https://github.com/lortabac/versioning
 license:             Apache-2.0
 license-file:        LICENSE
 author:              Lorenzo Tabacchini
