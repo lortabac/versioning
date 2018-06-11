@@ -1,15 +1,20 @@
+{-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
+{-# LANGUAGE UndecidableInstances  #-}
 module Main where
 
 import           Data.Aeson
-import qualified Data.ByteString.Lazy as LazyBS
-import           GHC.Generics         (Generic)
+import qualified Data.ByteString.Lazy  as LazyBS
+import           GHC.Generics          (Generic)
 import           Test.Hspec
 import           Versioning.Base
 import           Versioning.JSON
@@ -18,16 +23,22 @@ import           Versioning.Upgrade
 main :: IO ()
 main = hspec $ do
     describe "Upgrade" $ do
-        it "Can upgrade across two versions" $ do
+        it "Can upgrade across two versions" $
             upgrade @V1 foo1 `shouldBe` foo3
 
     describe "DecodeAnyVersion" $ do
-        it "Can decode from V1" $ do
+        it "Can decode from V1" $
             decodeAnyVersion @V3 fooJsonV1 `shouldBe` Just foo3
 
     describe "DecodeAnyVersion" $ do
-        it "Can decode from V3" $ do
+        it "Can decode from V3" $
             decodeAnyVersion @V3 fooJsonV3 `shouldBe` Just foo3
+
+    describe "WithAnyVersion" $ do
+        -- Decode a Foo and return its string representation without upgrading it
+        it "Can apply a function on the decoded object" $ do
+            let Just res = withAnyVersion @ShowAnyVersion @V3 @Foo showAnyVersion fooJsonV1
+            res `shouldBe` show foo1
 
 data Foo v = Foo
     { always  :: Int               -- this field exists in all versions
@@ -68,6 +79,15 @@ instance Adapt V2 V3 Foo where
                     , untilV2 = na
                     }
 
+type instance Applied ShowAnyVersion a = String
+
+-- | Show an object, whatever its version
+class ShowAnyVersion (a :: V -> *) (v :: V) where
+    showAnyVersion :: a v -> String
+
+instance Show (Foo v) => ShowAnyVersion Foo v where
+    showAnyVersion = show
+
 -- | A 'Foo' at version V1
 foo1 :: Foo V1
 foo1 = Foo
@@ -87,7 +107,7 @@ foo3 = Foo
     }
 
 fooJsonV1 :: LazyBS.ByteString
-fooJsonV1 = "{\"always\":1, \"untilV2\": 3.33}"
+fooJsonV1 = "{\"always\":1, \"untilV2\": 3.14}"
 
 fooJsonV3 :: LazyBS.ByteString
 fooJsonV3 = "{\"always\":1, \"sinceV2\": true, \"sinceV3\": \"hello\"}"
