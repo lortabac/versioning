@@ -16,6 +16,8 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Versioning.Base
+                     , Versioning.Internal.Base
+                     , Versioning.Internal.Folding
                      , Versioning.Upgrade
                      , Versioning.JSON
   build-depends:       base >=4.10 && <4.12

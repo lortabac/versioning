@@ -21,7 +21,7 @@
 --   Moreover the usage of type-level computations can make the error messages
 --   harder to understand.
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE ExplicitNamespaces    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -61,11 +61,11 @@ module Versioning.Base
   )
 where
 
-import           Data.Aeson      (FromJSON (..), ToJSON (..), Value (..))
-import           Data.Proxy      (Proxy (..))
-import           GHC.Generics    (Generic)
-import           GHC.TypeNats    (KnownNat, Nat, type (-), natVal)
-import           Numeric.Natural (Natural)
+import           Data.Proxy               (Proxy (..))
+import           GHC.TypeNats             (type (-), KnownNat, Nat, natVal)
+import           Numeric.Natural          (Natural)
+
+import           Versioning.Internal.Base (Bare)
 
 -- | The version of a data model
 newtype V = V Nat
@@ -104,29 +104,6 @@ type NA = Maybe Bare
 -- | A placeholder for an absent value.
 na :: NA
 na = Nothing
-
--- | An uninhabited type.
---   We define our own type instead of using "Data.Void"
---   because we need additional instances.
---   Moreover this type is hidden to force users to use 'NA',
---   which is needed because of the 'Maybe' hack.
-data Bare
-
-deriving instance Eq Bare
-
-deriving instance Generic Bare
-
-deriving instance Show Bare
-
--- Attempting to supply a value for an absent field must produce a
--- parsing failure
-instance FromJSON Bare where
-    parseJSON _ = fail "An NA field should be absent or null"
-
--- We provide an instance to make the compiler happy.
--- In practice it will never be used.
-instance ToJSON Bare where
-    toJSON _ = Null
 
 -- Handy type synonyms to minimize parenthesis
 type V1 = 'V 1

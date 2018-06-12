@@ -15,9 +15,9 @@ module Versioning.Upgrade
 where
 
 import           Data.Kind       (Type)
-import           GHC.TypeLits
 
 import           Versioning.Base
+import           Versioning.Internal.Folding (Incr)
 
 -- | Adapt from a version to another
 class Adapt (v :: V) (w :: V) (a :: V -> Type) where
@@ -42,16 +42,3 @@ instance {-# OVERLAPS #-} Upgrade v v a where
 instance {-# OVERLAPPABLE #-} (Adapt v (Incr v w) a, Upgrade (Incr v w) w a)
   => Upgrade v w a where
     upgrade' x = upgrade' @(Incr v w) @w (adapt @v @(Incr v w) x)
-
--- | Increment version until the target version is reached
-type family Incr (c :: V) (v :: V) :: V where
-    Incr ('V c) ('V v) = Incr' (CmpNat c v) ('V c)
-
-type family Incr' (o :: Ordering) (c :: V) :: V where
-    Incr' 'LT ('V c) = 'V (c + 1)
-    Incr' 'EQ ('V c) = 'V c
-    Incr' 'GT ('V c) = TypeError
-                       ( 'Text "Cannot increment "
-                   ':<>: 'ShowType ('V c)
-                   ':<>: 'Text " because the target is a lower version"
-                       )

@@ -21,14 +21,14 @@ module Versioning.JSON
   )
 where
 
-import           Control.Applicative   ((<|>))
-import           Data.Aeson            (FromJSON, decode)
-import qualified Data.ByteString.Lazy  as LazyBS
-import           Data.Functor.Identity (Identity (..))
-import           Data.Kind             (Constraint, Type)
-import           GHC.TypeLits
+import           Control.Applicative         ((<|>))
+import           Data.Aeson                  (FromJSON, decode)
+import qualified Data.ByteString.Lazy        as LazyBS
+import           Data.Functor.Identity       (Identity (..))
+import           Data.Kind                   (Constraint, Type)
 
 import           Versioning.Base
+import           Versioning.Internal.Folding (Decr)
 import           Versioning.Upgrade
 
 -- | Decode a JSON string by trying all the versions decrementally
@@ -88,16 +88,3 @@ instance {-# OVERLAPPABLE #-} (WithAnyVersion (Decr v V1) a c, FromJSON (a v), F
     withAnyVersion' action bs = case decode @(a v) bs of
         Just doc -> Just <$> action doc
         Nothing  -> withAnyVersion' @(Decr v V1) @a @c action bs
-
--- | Decrement version until the target version is reached
-type family Decr (c :: V) (v :: V) :: V where
-    Decr ('V c) ('V v) = Decr' (CmpNat c v) ('V c)
-
-type family Decr' (o :: Ordering) (c :: V) :: V where
-    Decr' 'GT ('V c) = 'V (c - 1)
-    Decr' 'EQ ('V c) = 'V c
-    Decr' 'LT ('V c) = TypeError
-                       ( 'Text "Cannot decrement "
-                   ':<>: 'ShowType ('V c)
-                   ':<>: 'Text " because the target is a higher version"
-                       )
