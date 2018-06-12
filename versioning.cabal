@@ -18,7 +18,7 @@ library
   exposed-modules:     Versioning.Base
                      , Versioning.Upgrade
                      , Versioning.JSON
-  build-depends:       base >=4.11 && <4.12
+  build-depends:       base >=4.10 && <4.12
                      , aeson >=1.0 && <1.5
                      , bytestring >=0.10 && <0.11
   hs-source-dirs:      src
@@ -28,7 +28,7 @@ library
 test-suite tests
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
-  build-depends:       base >=4.11 && <4.12
+  build-depends:       base >=4.10 && <4.12
                      , aeson >=1.0 && <1.5
                      , bytestring >=0.10 && <0.11
                      , hspec >=2.0 && <2.6
