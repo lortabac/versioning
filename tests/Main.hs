@@ -22,6 +22,10 @@ import           Versioning.Upgrade
 
 main :: IO ()
 main = hspec $ do
+    describe "Versioning" $ do
+        it "Can get the version number of a record" $
+            versionNumber foo1 `shouldBe` 1
+
     describe "Upgrade" $ do
         it "Can upgrade across two versions" $
             upgrade @V1 foo1 `shouldBe` foo3
@@ -30,7 +34,6 @@ main = hspec $ do
         it "Can decode from V1" $
             decodeAnyVersion @V3 fooJsonV1 `shouldBe` Just foo3
 
-    describe "DecodeAnyVersion" $ do
         it "Can decode from V3" $
             decodeAnyVersion @V3 fooJsonV3 `shouldBe` Just foo3
 

@@ -22,14 +22,18 @@
 --   harder to understand.
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 module Versioning.Base
   ( V(..)
+  , GetV
+  , versionNumber
   , Since
   , Until
   , NA
@@ -57,12 +61,22 @@ module Versioning.Base
   )
 where
 
-import           Data.Aeson   (FromJSON (..), ToJSON (..), Value (..))
-import           GHC.Generics (Generic)
-import           GHC.TypeNats
+import           Data.Aeson      (FromJSON (..), ToJSON (..), Value (..))
+import           Data.Proxy      (Proxy (..))
+import           GHC.Generics    (Generic)
+import           GHC.TypeNats    (KnownNat, Nat, type (-), natVal)
+import           Numeric.Natural (Natural)
 
 -- | The version of a data model
 newtype V = V Nat
+
+-- | Get the type-level natural of a version
+type family GetV (v :: V) :: Nat where
+    GetV ('V n) = n
+
+-- | Get the version number of a versioned value
+versionNumber :: forall a v. KnownNat (GetV v) => a v -> Natural
+versionNumber _ = natVal (Proxy :: Proxy (GetV v))
 
 -- | This allows us to express that a field is only present since
 --   a given version.
