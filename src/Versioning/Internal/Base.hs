@@ -12,8 +12,8 @@ import           GHC.Generics (Generic)
 -- | An uninhabited type.
 --   We define our own type instead of using "Data.Void"
 --   because we need additional instances.
---   Moreover this type is hidden to force users to use 'NA',
---   which is needed because of the 'Maybe' hack.
+--   Moreover this type is internal.
+--   Users are supposed to use 'NA' to express absence.
 data Bare
 
 deriving instance Eq Bare

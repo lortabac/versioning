@@ -13,6 +13,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 module Versioning.JSON
   ( Applied
+  , Apply
+  , ApplyM
   , DecodeAnyVersion
   , WithAnyVersion
   , decodeAnyVersion
@@ -57,12 +59,14 @@ withAnyVersion
 withAnyVersion action = runIdentity . withAnyVersionM @c @a @v (Identity . action)
 
 -- | The result type of the action that has been applied to the decoded object
---   with 'withAnyVersion'.
+--   with 'withAnyVersion' or 'withAnyVersionM'.
 type family Applied (c :: Type -> Constraint) (a :: V -> Type) :: Type
 
-type ApplyM m a c = forall v. c (a v) => a v -> m (Applied c a)
-
+-- | The pure function to apply to the decoded object with 'withAnyVersion'
 type Apply a c = forall v. c (a v) => a v -> Applied c a
+
+-- | The action to apply to the decoded object with 'withAnyVersionM'
+type ApplyM m a c = forall v. c (a v) => a v -> m (Applied c a)
 
 class DecodeAnyVersion (v :: V) (w :: V) (a :: V -> Type) where
     decodeAnyVersion' :: LazyBS.ByteString -> Maybe (a w)

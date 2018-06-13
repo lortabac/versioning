@@ -4,22 +4,25 @@
 --   'Since' and 'Until' type families.
 --
 --   Example:
---   data Rec v = Rec
---       { foo :: Int               -- this field exists in all versions
---       , bar :: Since V2 v Bool   -- this field has been introduced in V2
---       , baz :: Until V2 v Double -- this field has been removed in V3
---       }
+--
+-- > data Rec v = Rec
+-- >     { foo :: Int               -- this field exists in all versions
+-- >     , bar :: Since V2 v Bool   -- this field has been introduced in V2
+-- >     , baz :: Until V2 v Double -- this field has been removed in V3
+-- >     }
 --
 --   Besides reducing the number of data declarations,
 --   this approach also has other advantages:
+--
 --   * It makes migrations declarative and self-documenting.
+--
 --   * It allows for less verbose version-upcasting functions,
 --     since the fields that have a non-parametric type do not need to be copied.
+--
 --   * It is a foundation on which other useful abstractions can be built.
---   However there are also some drawbacks to consider:
---   some classes may require a separate standalone deriving clause for each version.
---   Moreover the usage of type-level computations can make the error messages
---   harder to understand.
+--
+--   Please note that some classes may require a separate standalone deriving clause
+--   for each version of a data-type or some kind of inductive deriving mechanism.
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE ExplicitNamespaces    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -97,8 +100,15 @@ type family Until (u :: V) (v :: V) a :: * where
     Until ('V u) ('V v) a = Until ('V (u - 1)) ('V (v - 1)) a
 
 -- | A type indicating absence.
---   The 'Maybe' is a hack needed to let aeson parse a record even
---   if a field is missing.
+--   The 'Maybe' is a hack needed to let aeson parse a record successfully even
+--   if a field of type 'NA' is missing.
+--
+--   Ideally we would like to define it as
+--
+-- > data NA = NA
+--
+--   but this would not work with 'FromJSON' instances that are derived
+--   with Generic.
 type NA = Maybe Bare
 
 -- | A placeholder for an absent value.
