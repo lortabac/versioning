@@ -28,7 +28,7 @@ instance Adapt V1 V2 Rec where
         { bar = False   -- this field is new in V2, we set it to a default value
         , baz = baz rec
         }
-        
+
 instance Adapt V2 V3 Rec where
     adapt rec = rec
         { bar = bar rec
@@ -59,25 +59,20 @@ decodeRec = decodeAnyVersion
 Sometimes, instead of upgrading,
 we need to use the decoded object at its original version.
 
-In order to do this we have to define a type-class and provide enough instances
-to be able to work with any version up to the most recent one.
+In order to do this we have to provide a constraint that can be solved
+with any version up to the most recent one.
 
 We can then use `withAnyVersion` to decode from JSON and apply a function
 to the decoded object.
 
 ```haskell
--- | Show an object, whatever its version
-class ShowAnyVersion (a :: V -> *) (v :: V) where
-    showAnyVersion :: a v -> String
+-- Specify the return type of the function we want to apply
+type instance Applied Show Rec = String
 
-instance Show (Rec v) => ShowAnyVersion Rec v where
-    showAnyVersion = show
-
--- Specify that the return type of our function is a String
-type instance Applied ShowAnyVersion Rec = String
-
+-- | Decode a 'Rec' of any version and return its string representation.
+--   It requires 'Show' instances for all versions of 'Foo' up to V3.
 decodeRecAndShow :: ByteString -> Maybe String
-decodeRecAndShow = withAnyVersion @ShowAnyVersion @V3 @Rec showAnyVersion
+decodeRecAndShow = withAnyVersion @Show @Rec @V3 show
 ```
 
 ## Inspiration

@@ -40,8 +40,8 @@ decodeAnyVersion = decodeAnyVersion' @v @v
 -- | Decode a JSON string by trying all the versions decrementally
 --   and apply an action to the decoded object at its original version.
 withAnyVersionM
-  :: forall c v a m
-   . (WithAnyVersion v a c, Applicative m, c a v)
+  :: forall c a v m
+   . (WithAnyVersion v a c, Applicative m, c (a v))
   => ApplyM m a c
   -> LazyBS.ByteString
   -> m (Maybe (Applied c a))
@@ -49,20 +49,20 @@ withAnyVersionM = withAnyVersion' @v @a @c
 
 -- | Pure version of 'withAnyVersionM'.
 withAnyVersion
-  :: forall c v a
-   . (WithAnyVersion v a c, c a v)
+  :: forall c a v
+   . (WithAnyVersion v a c, c (a v))
   => Apply a c
   -> LazyBS.ByteString
   -> Maybe (Applied c a)
-withAnyVersion action = runIdentity . withAnyVersionM @c @v @a (Identity . action)
+withAnyVersion action = runIdentity . withAnyVersionM @c @a @v (Identity . action)
 
 -- | The result type of the action that has been applied to the decoded object
 --   with 'withAnyVersion'.
-type family Applied (c :: (V -> Type) -> V -> Constraint) (a :: V -> Type) :: Type
+type family Applied (c :: Type -> Constraint) (a :: V -> Type) :: Type
 
-type ApplyM m a c = forall v. c a v => a v -> m (Applied c a)
+type ApplyM m a c = forall v. c (a v) => a v -> m (Applied c a)
 
-type Apply a c = forall v. c a v => a v -> Applied c a
+type Apply a c = forall v. c (a v) => a v -> Applied c a
 
 class DecodeAnyVersion (v :: V) (w :: V) (a :: V -> Type) where
     decodeAnyVersion' :: LazyBS.ByteString -> Maybe (a w)
@@ -76,14 +76,14 @@ instance {-# OVERLAPPABLE #-} (DecodeAnyVersion (Decr v V1) w a, FromJSON (a v),
                        <|> decodeAnyVersion' @(Decr v V1) @w bs
 
 class WithAnyVersion (v :: V) (a :: V -> Type) c where
-    withAnyVersion' :: (Applicative m, c a v) => ApplyM m a c -> LazyBS.ByteString -> m (Maybe (Applied c a))
+    withAnyVersion' :: (Applicative m, c (a v)) => ApplyM m a c -> LazyBS.ByteString -> m (Maybe (Applied c a))
 
-instance {-# OVERLAPPING #-} (FromJSON (a V1), c a V1) => WithAnyVersion V1 a c where
+instance {-# OVERLAPPING #-} (FromJSON (a V1), c (a V1)) => WithAnyVersion V1 a c where
     withAnyVersion' action bs = case decode @(a V1) bs of
         Just doc -> Just <$> action doc
         Nothing  -> pure Nothing
 
-instance {-# OVERLAPPABLE #-} (WithAnyVersion (Decr v V1) a c, FromJSON (a v), FromJSON (a (Decr v V1)), c a v, c a (Decr v V1))
+instance {-# OVERLAPPABLE #-} (WithAnyVersion (Decr v V1) a c, FromJSON (a v), FromJSON (a (Decr v V1)), c (a v), c (a (Decr v V1)))
   => WithAnyVersion v a c where
     withAnyVersion' action bs = case decode @(a v) bs of
         Just doc -> Just <$> action doc

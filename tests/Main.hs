@@ -16,6 +16,7 @@ import           Data.Aeson
 import qualified Data.ByteString.Lazy  as LazyBS
 import           GHC.Generics          (Generic)
 import           Test.Hspec
+
 import           Versioning.Base
 import           Versioning.JSON
 import           Versioning.Upgrade
@@ -40,7 +41,7 @@ main = hspec $ do
     describe "WithAnyVersion" $ do
         -- Decode a Foo and return its string representation without upgrading it
         it "Can apply a function on the decoded object" $ do
-            let Just res = withAnyVersion @ShowAnyVersion @V3 @Foo showAnyVersion fooJsonV1
+            let Just res = withAnyVersion @Show @Foo @V3 show fooJsonV1
             res `shouldBe` show foo1
 
 data Foo v = Foo
@@ -82,14 +83,7 @@ instance Adapt V2 V3 Foo where
                     , untilV2 = na
                     }
 
-type instance Applied ShowAnyVersion a = String
-
--- | Show an object, whatever its version
-class ShowAnyVersion (a :: V -> *) (v :: V) where
-    showAnyVersion :: a v -> String
-
-instance Show (Foo v) => ShowAnyVersion Foo v where
-    showAnyVersion = show
+type instance Applied Show a = String
 
 -- | A 'Foo' at version V1
 foo1 :: Foo V1
