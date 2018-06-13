@@ -15,6 +15,7 @@ module Versioning.JSON
   ( Applied
   , Apply
   , ApplyM
+  , DecodableTo
   , DecodeAnyVersion
   , WithAnyVersion
   , decodeAnyVersion
@@ -36,7 +37,7 @@ import           Versioning.Upgrade
 -- | Decode a JSON string by trying all the versions decrementally
 --   and upgrade the decoded object to the newest version.
 decodeAnyVersion
-  :: forall v a . DecodeAnyVersion v v a => LazyBS.ByteString -> Maybe (a v)
+  :: forall v a . DecodableTo v a => LazyBS.ByteString -> Maybe (a v)
 decodeAnyVersion = decodeAnyVersion' @v @v
 
 -- | Decode a JSON string by trying all the versions decrementally
@@ -67,6 +68,9 @@ type Apply a c = forall v. c (a v) => a v -> Applied c a
 
 -- | The action to apply to the decoded object with 'withAnyVersionM'
 type ApplyM m a c = forall v. c (a v) => a v -> m (Applied c a)
+
+-- | Handy constraint synonym to be used with 'decodeAnyVersion'
+type DecodableTo v a = DecodeAnyVersion v v a
 
 class DecodeAnyVersion (v :: V) (w :: V) (a :: V -> Type) where
     decodeAnyVersion' :: LazyBS.ByteString -> Maybe (a w)
