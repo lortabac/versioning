@@ -1,3 +1,4 @@
+-- | JSON-specific deserialization utilities.
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
@@ -13,86 +14,145 @@
 {-# LANGUAGE UndecidableInstances  #-}
 module Versioning.JSON
   ( Applied
-  , Apply
-  , ApplyM
-  , DecodableTo
-  , DecodeAnyVersion
-  , WithAnyVersion
-  , decodeAnyVersion
-  , withAnyVersion
-  , withAnyVersionM
+  , JsonDecodableTo
+  , fromJsonAnyVersion
+  , fromJsonAnyVersionStrict
+  , fromJsonAnyVersionEither
+  , fromJsonAnyVersionEitherStrict
+  , withJsonAnyVersion
+  , withJsonAnyVersionStrict
+  , withJsonAnyVersionEither
+  , withJsonAnyVersionEitherStrict
+  , withJsonAnyVersionM
+  , withJsonAnyVersionStrictM
+  , withJsonAnyVersionEitherM
+  , withJsonAnyVersionEitherStrictM
   )
 where
 
-import           Control.Applicative         ((<|>))
-import           Data.Aeson                  (FromJSON, decode)
-import qualified Data.ByteString.Lazy        as LazyBS
-import           Data.Functor.Identity       (Identity (..))
-import           Data.Kind                   (Constraint, Type)
+import           Data.Aeson                   (FromJSON, decode, decodeStrict,
+                                               eitherDecode, eitherDecodeStrict)
+import qualified Data.ByteString              as StrictBS
+import qualified Data.ByteString.Lazy         as LazyBS
 
-import           Versioning.Base
-import           Versioning.Internal.Folding (Decr)
-import           Versioning.Upgrade
+import           Versioning.Internal.Decoding
 
 -- | Decode a JSON string by trying all the versions decrementally
 --   and upgrade the decoded object to the newest version.
-decodeAnyVersion
-  :: forall v a . DecodableTo v a => LazyBS.ByteString -> Maybe (a v)
-decodeAnyVersion = decodeAnyVersion' @v @v
+fromJsonAnyVersion
+  :: forall v a . JsonDecodableTo v a => LazyBS.ByteString -> Maybe (a v)
+fromJsonAnyVersion = decodeAnyVersion jsonDecode
+
+-- | Like 'fromJsonAnyVersion' but it reads from a strict 'ByteString'
+fromJsonAnyVersionStrict
+  :: forall v a . JsonDecodableTo v a => StrictBS.ByteString -> Maybe (a v)
+fromJsonAnyVersionStrict = decodeAnyVersion jsonDecodeStrict
+
+-- | Like 'fromJsonAnyVersion' but returns a message when decoding fails
+fromJsonAnyVersionEither
+  :: forall v a
+   . JsonDecodableTo v a
+  => LazyBS.ByteString
+  -> Either String (a v)
+fromJsonAnyVersionEither = decodeAnyVersion jsonEitherDecode
+
+-- | Like 'fromJsonAnyVersionStrict' but returns a message when decoding fails
+fromJsonAnyVersionEitherStrict
+  :: forall v a
+   . JsonDecodableTo v a
+  => StrictBS.ByteString
+  -> Either String (a v)
+fromJsonAnyVersionEitherStrict = decodeAnyVersion jsonEitherDecodeStrict
 
 -- | Decode a JSON string by trying all the versions decrementally
 --   and apply an action to the decoded object at its original version.
-withAnyVersionM
+withJsonAnyVersionM
   :: forall c a v m
-   . (WithAnyVersion v a c, Applicative m, c (a v))
+   . (WithAnyVersion v a c FromJSON, Applicative m, c (a v))
   => ApplyM m a c
   -> LazyBS.ByteString
   -> m (Maybe (Applied c a))
-withAnyVersionM = withAnyVersion' @v @a @c
+withJsonAnyVersionM = withAnyVersionM @v @c @a jsonDecode
 
--- | Pure version of 'withAnyVersionM'.
-withAnyVersion
+-- | Like 'withJsonAnyVersionM' but it reads from a strict 'ByteString'
+withJsonAnyVersionStrictM
+  :: forall c a v m
+   . (WithAnyVersion v a c FromJSON, Applicative m, c (a v))
+  => ApplyM m a c
+  -> StrictBS.ByteString
+  -> m (Maybe (Applied c a))
+withJsonAnyVersionStrictM = withAnyVersionM @v @c @a jsonDecodeStrict
+
+-- | Like 'withJsonAnyVersionM' but returns a message when decoding fails
+withJsonAnyVersionEitherM
+  :: forall c a v m
+   . (WithAnyVersion v a c FromJSON, Applicative m, c (a v))
+  => ApplyM m a c
+  -> LazyBS.ByteString
+  -> m (Either String (Applied c a))
+withJsonAnyVersionEitherM = withAnyVersionM @v @c @a jsonEitherDecode
+
+-- | Like 'withJsonAnyVersionStrictM' but returns a message when decoding fails
+withJsonAnyVersionEitherStrictM
+  :: forall c a v m
+   . (WithAnyVersion v a c FromJSON, Applicative m, c (a v))
+  => ApplyM m a c
+  -> StrictBS.ByteString
+  -> m (Either String (Applied c a))
+withJsonAnyVersionEitherStrictM = withAnyVersionM @v @c @a jsonEitherDecodeStrict
+
+-- | Decode a JSON string by trying all the versions decrementally
+--   and apply a pure function to the decoded object at its original version.
+withJsonAnyVersion
   :: forall c a v
-   . (WithAnyVersion v a c, c (a v))
+   . (WithAnyVersion v a c FromJSON, c (a v))
   => Apply a c
   -> LazyBS.ByteString
   -> Maybe (Applied c a)
-withAnyVersion action = runIdentity . withAnyVersionM @c @a @v (Identity . action)
+withJsonAnyVersion = withAnyVersion @v @c @a jsonDecode
 
--- | The result type of the action that has been applied to the decoded object
---   with 'withAnyVersion' or 'withAnyVersionM'.
-type family Applied (c :: Type -> Constraint) (a :: V -> Type) :: Type
+-- | Like 'withJsonAnyVersion' but it reads from a strict 'ByteString'
+withJsonAnyVersionStrict
+  :: forall c a v
+   . (WithAnyVersion v a c FromJSON, c (a v))
+  => Apply a c
+  -> StrictBS.ByteString
+  -> Maybe (Applied c a)
+withJsonAnyVersionStrict = withAnyVersion @v @c @a jsonDecodeStrict
 
--- | The pure function to apply to the decoded object with 'withAnyVersion'
-type Apply a c = forall v. c (a v) => a v -> Applied c a
+-- | Like 'withJsonAnyVersion' but returns a message when decoding fails
+withJsonAnyVersionEither
+  :: forall c a v
+   . (WithAnyVersion v a c FromJSON, c (a v))
+  => Apply a c
+  -> LazyBS.ByteString
+  -> Either String (Applied c a)
+withJsonAnyVersionEither = withAnyVersion @v @c @a jsonEitherDecode
 
--- | The action to apply to the decoded object with 'withAnyVersionM'
-type ApplyM m a c = forall v. c (a v) => a v -> m (Applied c a)
+-- | Like 'withJsonAnyVersionStrict' but returns a message when decoding fails
+withJsonAnyVersionEitherStrict
+  :: forall c a v
+   . (WithAnyVersion v a c FromJSON, c (a v))
+  => Apply a c
+  -> StrictBS.ByteString
+  -> Either String (Applied c a)
+withJsonAnyVersionEitherStrict = withAnyVersion @v @c @a jsonEitherDecodeStrict
 
--- | Handy constraint synonym to be used with 'decodeAnyVersion'
-type DecodableTo v a = DecodeAnyVersion v v a
+-- | Decode with the aeson 'decode' function
+jsonDecode :: Decoder FromJSON LazyBS.ByteString Maybe a
+jsonDecode = Decoder decode
 
-class DecodeAnyVersion (v :: V) (w :: V) (a :: V -> Type) where
-    decodeAnyVersion' :: LazyBS.ByteString -> Maybe (a w)
+-- | Decode with the aeson 'decodeStrict' function
+jsonDecodeStrict :: Decoder FromJSON StrictBS.ByteString Maybe a
+jsonDecodeStrict = Decoder decodeStrict
 
-instance {-# OVERLAPPING #-} (FromJSON (a V1), Upgrade V1 w a) => DecodeAnyVersion V1 w a where
-    decodeAnyVersion' bs = upgrade @V1 @w <$> decode @(a V1) bs
+-- | Decode with the aeson 'eitherDecode' function
+jsonEitherDecode :: Decoder FromJSON LazyBS.ByteString (Either String) a
+jsonEitherDecode = Decoder eitherDecode
 
-instance {-# OVERLAPPABLE #-} (DecodeAnyVersion (Decr v V1) w a, FromJSON (a v), FromJSON (a (Decr v V1)), Upgrade v w a)
-  => DecodeAnyVersion v w a where
-    decodeAnyVersion' bs = upgrade @v @w <$> decode @(a v) bs
-                       <|> decodeAnyVersion' @(Decr v V1) @w bs
+-- | Decode with the aeson 'eitherDecodeStrict' function
+jsonEitherDecodeStrict :: Decoder FromJSON StrictBS.ByteString (Either String) a
+jsonEitherDecodeStrict = Decoder eitherDecodeStrict
 
-class WithAnyVersion (v :: V) (a :: V -> Type) c where
-    withAnyVersion' :: (Applicative m, c (a v)) => ApplyM m a c -> LazyBS.ByteString -> m (Maybe (Applied c a))
-
-instance {-# OVERLAPPING #-} (FromJSON (a V1), c (a V1)) => WithAnyVersion V1 a c where
-    withAnyVersion' action bs = case decode @(a V1) bs of
-        Just doc -> Just <$> action doc
-        Nothing  -> pure Nothing
-
-instance {-# OVERLAPPABLE #-} (WithAnyVersion (Decr v V1) a c, FromJSON (a v), FromJSON (a (Decr v V1)), c (a v), c (a (Decr v V1)))
-  => WithAnyVersion v a c where
-    withAnyVersion' action bs = case decode @(a v) bs of
-        Just doc -> Just <$> action doc
-        Nothing  -> withAnyVersion' @(Decr v V1) @a @c action bs
+-- | Handy constraint synonym to be used with 'fromJsonAnyVersion'
+type JsonDecodableTo v a = DecodableTo FromJSON v a

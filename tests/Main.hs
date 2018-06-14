@@ -33,15 +33,15 @@ main = hspec $ do
 
     describe "DecodeAnyVersion" $ do
         it "Can decode from V1" $
-            decodeAnyVersion @V3 fooJsonV1 `shouldBe` Just foo3
+            fromJsonAnyVersion @V3 fooJsonV1 `shouldBe` Just foo3
 
         it "Can decode from V3" $
-            decodeAnyVersion @V3 fooJsonV3 `shouldBe` Just foo3
+            fromJsonAnyVersion @V3 fooJsonV3 `shouldBe` Just foo3
 
     describe "WithAnyVersion" $ do
         -- Decode a Foo and return its string representation without upgrading it
         it "Can apply a function on the decoded object" $ do
-            let Just res = withAnyVersion @Show @Foo @V3 show fooJsonV1
+            let Just res = withJsonAnyVersion @Show @Foo @V3 show fooJsonV1
             res `shouldBe` show foo1
 
 data Foo v = Foo
