@@ -51,7 +51,7 @@ This is all done automatically thanks to the `DecodeAnyVersion` class.
 
 ```haskell
 decodeRec :: ByteString -> Maybe (Rec V3)
-decodeRec = decodeAnyVersion
+decodeRec = fromJsonAnyVersion
 ```
 
 #### Using a decoded object
@@ -62,7 +62,7 @@ we need to use the decoded object at its original version.
 In order to do this we have to provide a constraint that can be solved
 with any version up to the most recent one.
 
-We can then use `withAnyVersion` to decode from JSON and apply a function
+We can then use the `WithAnyVersion` class to decode from JSON and apply a function
 to the decoded object.
 
 ```haskell
@@ -72,7 +72,7 @@ type instance Applied Show Rec = String
 -- | Decode a 'Rec' of any version and return its string representation.
 --   It requires 'Show' instances for all versions of 'Foo' up to V3.
 decodeRecAndShow :: ByteString -> Maybe String
-decodeRecAndShow = withAnyVersion @Show @Rec @V3 show
+decodeRecAndShow = withJsonAnyVersion @Show @Rec @V3 show
 ```
 
 ## Inspiration
