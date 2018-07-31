@@ -25,86 +25,102 @@ main :: IO ()
 main = hspec $ do
     describe "Versioning" $ do
         it "Can get the version number of a record" $
-            versionNumber foo1 `shouldBe` 1
+            versionNumber foo0 `shouldBe` 0
 
     describe "Upgrade" $ do
         it "Can upgrade across two versions" $
-            upgrade @V1 foo1 `shouldBe` foo3
+            upgrade @V0 foo0 `shouldBe` foo2
 
     describe "DecodeAnyVersion" $ do
-        it "Can decode from V1" $
-            fromJsonAnyVersion @V3 fooJsonV1 `shouldBe` Just foo3
+        it "Can decode from V0" $
+            fromJsonAnyVersion @V2 fooJsonV0 `shouldBe` Just foo2
 
-        it "Can decode from V3" $
-            fromJsonAnyVersion @V3 fooJsonV3 `shouldBe` Just foo3
+        it "Can decode from V2" $
+            fromJsonAnyVersion @V2 fooJsonV2 `shouldBe` Just foo2
+
+    describe "DecodeAnyVersionFrom" $ do
+        it "Can decode from V1" $
+            fromJsonAnyVersionFrom @V1 @V2 fooJsonV2 `shouldBe` Just foo2
+
+        it "Should not decode V0" $
+            fromJsonAnyVersionFrom @V1 @V2 fooJsonV0 `shouldBe` (Nothing :: Maybe (Foo V2))
 
     describe "WithAnyVersion" $ do
         -- Decode a Foo and return its string representation without upgrading it
         it "Can apply a function on the decoded object" $ do
-            let Just res = withJsonAnyVersion @Show @Foo @V3 show fooJsonV1
-            res `shouldBe` show foo1
+            let Just res = withJsonAnyVersion @Show @Foo @V2 show fooJsonV0
+            res `shouldBe` show foo0
+
+    describe "WithAnyVersionFrom" $ do
+        it "Can apply a function on the decoded object" $ do
+            let Just res = withJsonAnyVersionFrom @V1 @Show @Foo @V2 show fooJsonV2
+            res `shouldBe` show foo2
+
+        it "Should not decode V0" $ do
+            let res = withJsonAnyVersionFrom @V1 @Show @Foo @V2 show fooJsonV0
+            res `shouldBe` (Nothing :: Maybe String)
 
 data Foo v = Foo
     { always  :: Int               -- this field exists in all versions
-    , sinceV2 :: Since V2 v Bool   -- this field has been introduced in V2
-    , sinceV3 :: Since V3 v String -- this field has been introduced in V3
-    , untilV2 :: Until V2 v Double -- this field has been removed in V3
+    , sinceV1 :: Since V1 v Bool   -- this field has been introduced in V1
+    , sinceV2 :: Since V2 v String -- this field has been introduced in V2
+    , untilV1 :: Until V1 v Double -- this field has been removed in V2
     } deriving (Generic)
+
+deriving instance Eq (Foo V0)
 
 deriving instance Eq (Foo V1)
 
 deriving instance Eq (Foo V2)
 
-deriving instance Eq (Foo V3)
+instance FromJSON (Foo V0)
 
 instance FromJSON (Foo V1)
 
 instance FromJSON (Foo V2)
 
-instance FromJSON (Foo V3)
+deriving instance Show (Foo V0)
 
 deriving instance Show (Foo V1)
 
 deriving instance Show (Foo V2)
 
-deriving instance Show (Foo V3)
-
 -- How to upcast from V1 to V2
-instance Adapt V1 V2 Foo where
-    adapt foo = foo { sinceV2 = True
-                    , sinceV3 = na
-                    , untilV2 = untilV2 foo
+instance Adapt V0 V1 Foo where
+    adapt foo = foo { sinceV1 = True
+                    , sinceV2 = na
+                    , untilV1 = untilV1 foo
                     }
 
 -- How to upcast from V2 to V3
-instance Adapt V2 V3 Foo where
-    adapt foo = foo { sinceV2 = sinceV2 foo
-                    , sinceV3 = "hello"
-                    , untilV2 = na
+instance Adapt V1 V2 Foo where
+    adapt foo = foo { sinceV1 = sinceV1 foo
+                    , sinceV2 = "hello"
+                    , untilV1 = na
                     }
 
 type instance Applied Show a = String
 
--- | A 'Foo' at version V1
-foo1 :: Foo V1
-foo1 = Foo
+-- | A 'Foo' at version V0
+foo0 :: Foo V0
+foo0 = Foo
     { always = 1
+    , sinceV1 = na
     , sinceV2 = na
-    , sinceV3 = na
-    , untilV2 = 3.14
+    , untilV1 = 3.14
     }
 
--- | A 'Foo' at version V3
-foo3 :: Foo V3
-foo3 = Foo
+-- | A 'Foo' at version V2
+foo2 :: Foo V2
+foo2 = Foo
     { always = 1
-    , sinceV2 = True
-    , sinceV3 = "hello"
-    , untilV2 = Nothing
+    , sinceV1 = True
+    , sinceV2 = "hello"
+    , untilV1 = Nothing
     }
 
-fooJsonV1 :: LazyBS.ByteString
-fooJsonV1 = "{\"always\":1, \"untilV2\": 3.14}"
+fooJsonV0 :: LazyBS.ByteString
+fooJsonV0 = "{\"always\":1, \"untilV1\": 3.14}"
 
-fooJsonV3 :: LazyBS.ByteString
-fooJsonV3 = "{\"always\":1, \"sinceV2\": true, \"sinceV3\": \"hello\"}"
+fooJsonV2 :: LazyBS.ByteString
+fooJsonV2 = "{\"always\":1, \"sinceV1\": true, \"sinceV2\": \"hello\"}"

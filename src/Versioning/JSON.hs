@@ -3,30 +3,35 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeInType            #-}
-{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 module Versioning.JSON
-  ( Applied
+  ( -- * Types
+    Applied
   , JsonDecodableTo
+  , JsonDecodableToFrom
+    -- * Decoding and upgrading
   , fromJsonAnyVersion
   , fromJsonAnyVersionStrict
   , fromJsonAnyVersionEither
   , fromJsonAnyVersionEitherStrict
+  , fromJsonAnyVersionFrom
+    -- * Decoding and appyling an action
   , withJsonAnyVersion
   , withJsonAnyVersionStrict
   , withJsonAnyVersionEither
   , withJsonAnyVersionEitherStrict
+  , withJsonAnyVersionFrom
   , withJsonAnyVersionM
   , withJsonAnyVersionStrictM
   , withJsonAnyVersionEitherM
   , withJsonAnyVersionEitherStrictM
+  , withJsonAnyVersionFromM
   )
 where
 
@@ -64,6 +69,15 @@ fromJsonAnyVersionEitherStrict
   -> Either String (a v)
 fromJsonAnyVersionEitherStrict = decodeAnyVersion jsonEitherDecodeStrict
 
+-- | Like 'fromJsonAnyVersion', with an additional type-parameter
+--   indicating the oldest version you want to be able to decode
+fromJsonAnyVersionFrom
+  :: forall from v a
+   . JsonDecodableToFrom from v a
+  => LazyBS.ByteString
+  -> Maybe (a v)
+fromJsonAnyVersionFrom = decodeAnyVersionFrom @from jsonDecode
+
 -- | Decode a JSON string by trying all the versions decrementally
 --   and apply an action to the decoded object at its original version.
 withJsonAnyVersionM
@@ -99,7 +113,18 @@ withJsonAnyVersionEitherStrictM
   => ApplyM m a c
   -> StrictBS.ByteString
   -> m (Either String (Applied c a))
-withJsonAnyVersionEitherStrictM = withAnyVersionM @v @c @a jsonEitherDecodeStrict
+withJsonAnyVersionEitherStrictM =
+  withAnyVersionM @v @c @a jsonEitherDecodeStrict
+
+-- | Like 'withJsonAnyVersionM', with an additional type-parameter
+--   indicating the oldest version you want to be able to decode
+withJsonAnyVersionFromM
+  :: forall from c a v m
+   . (WithAnyVersionFrom from v a c FromJSON, Applicative m, c (a v))
+  => ApplyM m a c
+  -> LazyBS.ByteString
+  -> m (Maybe (Applied c a))
+withJsonAnyVersionFromM = withAnyVersionFromM @from @v @c @a jsonDecode
 
 -- | Decode a JSON string by trying all the versions decrementally
 --   and apply a pure function to the decoded object at its original version.
@@ -138,6 +163,16 @@ withJsonAnyVersionEitherStrict
   -> Either String (Applied c a)
 withJsonAnyVersionEitherStrict = withAnyVersion @v @c @a jsonEitherDecodeStrict
 
+-- | Like 'withJsonAnyVersion', with an additional type-parameter
+--   indicating the oldest version you want to be able to decode
+withJsonAnyVersionFrom
+  :: forall from c a v
+   . (WithAnyVersionFrom from v a c FromJSON, c (a v))
+  => Apply a c
+  -> LazyBS.ByteString
+  -> Maybe (Applied c a)
+withJsonAnyVersionFrom = withAnyVersionFrom @from @v @c @a jsonDecode
+
 -- | Decode with the aeson 'decode' function
 jsonDecode :: Decoder FromJSON LazyBS.ByteString Maybe a
 jsonDecode = Decoder decode
@@ -156,3 +191,7 @@ jsonEitherDecodeStrict = Decoder eitherDecodeStrict
 
 -- | Handy constraint synonym to be used with 'fromJsonAnyVersion'
 type JsonDecodableTo v a = DecodableTo FromJSON v a
+
+-- | Like 'JsonDecodableTo', with an additional type-parameter
+--   indicating the oldest version you want to be able to decode
+type JsonDecodableToFrom from v a = DecodableToFrom from FromJSON v a
