@@ -10,8 +10,8 @@ Example:
 ```haskell
 data Rec v = Rec
     { foo :: Int               -- this field exists in all versions
-    , bar :: Since V2 v Bool   -- this field has been introduced in V2
-    , baz :: Until V2 v Double -- this field has been removed in V3
+    , bar :: Since V1 v Bool   -- this field has been introduced in V1
+    , baz :: Until V1 v Double -- this field has been removed in V2
     }
 ```
 
@@ -23,20 +23,20 @@ For example, once we define how to `adapt` from each version to the next,
 we can `upgrade` across multiple versions automatically:
 
 ```haskell
-instance Adapt V1 V2 Rec where
+instance Adapt V0 V1 Rec where
     adapt rec = rec
-        { bar = False   -- this field is new in V2, we set it to a default value
+        { bar = False   -- this field is new in V1, we set it to a default value
         , baz = baz rec
         }
 
-instance Adapt V2 V3 Rec where
+instance Adapt V1 V2 Rec where
     adapt rec = rec
         { bar = bar rec
-        , baz = na      -- this field is not available anymore in V3
+        , baz = na      -- this field is not available anymore in V2
         }
 
--- | Upgrade a 'Rec' from V1 to V3
-upgradeRec :: Rec V1 -> Rec V3
+-- | Upgrade a 'Rec' from V0 to V2
+upgradeRec :: Rec V0 -> Rec V2
 upgradeRec = upgrade
 ```
 
@@ -50,7 +50,7 @@ and upgrade the decoded object to the latest version.
 This is all done automatically thanks to the `DecodeAnyVersion` class.
 
 ```haskell
-decodeRec :: ByteString -> Maybe (Rec V3)
+decodeRec :: ByteString -> Maybe (Rec V2)
 decodeRec = fromJsonAnyVersion
 ```
 
@@ -70,9 +70,9 @@ to the decoded object.
 type instance Applied Show Rec = String
 
 -- | Decode a 'Rec' of any version and return its string representation.
---   It requires 'Show' instances for all versions of 'Foo' up to V3.
+--   It requires 'Show' instances for all versions of 'Foo' up to V2.
 decodeRecAndShow :: ByteString -> Maybe String
-decodeRecAndShow = withJsonAnyVersion @Show @Rec @V3 show
+decodeRecAndShow = withJsonAnyVersion @Show @Rec @V2 show
 ```
 
 ## Inspiration
