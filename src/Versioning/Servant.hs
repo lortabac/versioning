@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -5,9 +6,12 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 module Versioning.Servant
   ( VersionedJSON
+  , VersionedJSONFrom
   )
 where
 
@@ -29,28 +33,35 @@ import           Versioning.Base
 import           Versioning.Internal.Decoding
 import           Versioning.JSON
 
--- Drop-in replacement for the 'JSON' data-type
--- for seamless integration with servant.
-data VersionedJSON deriving Typeable
+-- | Drop-in replacement for the 'JSON' data-type
+--   for seamless integration with servant.
+type VersionedJSON = VersionedJSONFrom V0
 
-instance Accept VersionedJSON where
+-- | Like 'VersionedJSON', with an additional type-parameter
+--   indicating the oldest version you want to be able to decode
+data VersionedJSONFrom (v :: V) deriving Typeable
+
+instance Accept (VersionedJSONFrom from) where
     contentTypes _ =
       "application" Media.// "json" Media./: ("charset", "utf-8") NonEmpty.:|
       [ "application" Media.// "json" ]
 
 -- We add a redundant 'JsonDecodableTo' constraint to minimize the risk
 -- of using the 'VersionedJSON' type in the wrong place
-instance {-# OVERLAPPABLE #-} (JsonDecodableTo v a, ToJSON (a v))
-  => MimeRender VersionedJSON (a v) where
+instance {-# OVERLAPPABLE #-} (JsonDecodableToFrom from v a, ToJSON (a v))
+  => MimeRender (VersionedJSONFrom from) (a v) where
     mimeRender _ = encode
 
-instance JsonDecodableTo v a => MimeUnrender VersionedJSON (a v) where
-    mimeUnrender _ = fromJsonAnyVersionLenient
+instance JsonDecodableToFrom from v a => MimeUnrender (VersionedJSONFrom from) (a v) where
+    mimeUnrender _ = fromJsonAnyVersionLenientFrom @from
 
 -- | Like 'fromJsonAnyVersionEither', but it uses 'eitherDecodeLenient' for decoding
-fromJsonAnyVersionLenient
-  :: JsonDecodableTo v a => LazyBS.ByteString -> Either String (a v)
-fromJsonAnyVersionLenient = decodeAnyVersion jsonDecodeLenient
+fromJsonAnyVersionLenientFrom
+  :: forall from v a
+   . JsonDecodableToFrom from v a
+  => LazyBS.ByteString
+  -> Either String (a v)
+fromJsonAnyVersionLenientFrom = decodeAnyVersionFrom @from jsonDecodeLenient
 
 -- | Lenient JSON decoder
 jsonDecodeLenient
