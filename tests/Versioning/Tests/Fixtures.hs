@@ -15,7 +15,6 @@ module Versioning.Tests.Fixtures where
 import           Data.Aeson
 import qualified Data.ByteString.Lazy  as LazyBS
 import           GHC.Generics          (Generic)
-import           Test.Hspec
 
 import           Versioning.Base
 import           Versioning.JSON

@@ -58,9 +58,9 @@ type ApplyM m a c = forall v. c (a v) => a v -> m (Applied c a)
 newtype Decoder dec enc t a = Decoder (forall v. dec (a v) => enc -> t (a v))
 
 -- | Handy constraint synonym to be used with 'decodeAnyVersion'
-type DecodableTo dec v a = (DecodeAnyVersion v v a dec, Upgrade v v a, dec (a v))
+type DecodableTo dec v a = DecodableToFrom V0 dec v a
 
-type DecodableToFrom from dec v a = (DecodeAnyVersionFrom from v v a dec, Upgrade v v a, dec (a v))
+type DecodableToFrom from dec v a = DecodeAnyVersionFrom from v v a dec
 
 decodeAnyVersion
   :: forall v a dec enc t

@@ -40,6 +40,7 @@ import           Data.Aeson                   (FromJSON, decode, decodeStrict,
 import qualified Data.ByteString              as StrictBS
 import qualified Data.ByteString.Lazy         as LazyBS
 
+import           Versioning.Base
 import           Versioning.Internal.Decoding
 
 -- | Decode a JSON string by trying all the versions decrementally
@@ -190,7 +191,7 @@ jsonEitherDecodeStrict :: Decoder FromJSON StrictBS.ByteString (Either String) a
 jsonEitherDecodeStrict = Decoder eitherDecodeStrict
 
 -- | Handy constraint synonym to be used with 'fromJsonAnyVersion'
-type JsonDecodableTo v a = DecodableTo FromJSON v a
+type JsonDecodableTo v a = JsonDecodableToFrom V0 v a
 
 -- | Like 'JsonDecodableTo', with an additional type-parameter
 --   indicating the oldest version you want to be able to decode
