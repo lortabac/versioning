@@ -20,6 +20,7 @@ library
                      , Versioning.Internal.Decoding
                      , Versioning.Upgrade
                      , Versioning.JSON
+  other-modules:       Versioning.Internal.Equality
   build-depends:       base >=4.10 && <4.12
                      , aeson >=1.0 && <1.5
                      , bytestring >=0.10 && <0.11

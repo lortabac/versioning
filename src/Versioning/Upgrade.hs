@@ -17,10 +17,10 @@ module Versioning.Upgrade
   )
 where
 
-import           Data.Kind          (Type)
-import           Data.Type.Equality (type (==))
+import           Data.Kind                    (Type)
 
 import           Versioning.Base
+import           Versioning.Internal.Equality (type (==))
 
 -- | Adapt from a version to another
 class Adapt (v :: V) (w :: V) (a :: V -> Type) where

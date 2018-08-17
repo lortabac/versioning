@@ -36,12 +36,12 @@ module Versioning.Internal.Decoding
   )
 where
 
-import           Data.Functor.Alt      (Alt (..))
-import           Data.Functor.Identity (Identity (..))
-import           Data.Kind             (Constraint, Type)
-import           Data.Type.Equality    (type (==))
+import           Data.Functor.Alt             (Alt (..))
+import           Data.Functor.Identity        (Identity (..))
+import           Data.Kind                    (Constraint, Type)
 
 import           Versioning.Base
+import           Versioning.Internal.Equality (type (==))
 import           Versioning.Upgrade
 
 -- | The result type of the action that has been applied to the decoded object
