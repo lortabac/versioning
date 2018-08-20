@@ -7,7 +7,7 @@ import           Versioning.Base
 import           Versioning.JSON
 import           Versioning.Upgrade
 
-import           Versioning.Tests.Fixtures (Foo (..), foo0, foo2, fooJsonV0,
+import           Tests.Versioning.Fixtures (Foo (..), foo0, foo2, fooJsonV0,
                                             fooJsonV2)
 
 main :: IO ()

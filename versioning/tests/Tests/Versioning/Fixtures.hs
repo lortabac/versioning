@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 {-# LANGUAGE UndecidableInstances  #-}
-module Versioning.Tests.Fixtures where
+module Tests.Versioning.Fixtures where
 
 import           Data.Aeson
 import qualified Data.ByteString.Lazy  as LazyBS
