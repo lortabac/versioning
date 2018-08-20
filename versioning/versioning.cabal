@@ -29,12 +29,6 @@ library
   default-language:    Haskell2010
   ghc-options:       -Wall
 
-  if flag(servant)
-    build-depends:     attoparsec
-                     , http-media
-                     , servant
-    exposed-modules:   Versioning.Servant
-
 test-suite tests
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
@@ -47,8 +41,3 @@ test-suite tests
   hs-source-dirs:      tests
   default-language:    Haskell2010
   ghc-options:       -Wall
-
-flag servant
-  description: Provide utilities for @servant@
-  default: True
-  manual: True
