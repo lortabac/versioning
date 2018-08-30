@@ -52,6 +52,12 @@ instance {-# OVERLAPPABLE #-} (JsonDecodableToFrom from v a, ToJSON (a v))
   => MimeRender (VersionedJSONFrom from) (a v) where
     mimeRender _ = encode
 
+-- Include a specific instance for optional fields
+instance (JsonDecodableToFrom from v a, ToJSON (a v))
+  => MimeRender (VersionedJSONFrom from) (Maybe (a v)) where
+    mimeRender t (Just x) = mimeRender t x
+    mimeRender _ Nothing  = mempty
+
 instance JsonDecodableToFrom from v a => MimeUnrender (VersionedJSONFrom from) (a v) where
     mimeUnrender _ = fromJsonAnyVersionLenientFrom @from
 
