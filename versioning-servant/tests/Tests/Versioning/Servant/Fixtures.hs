@@ -25,9 +25,10 @@ import           Versioning.Servant   (VersionedJSON)
 import           Versioning.Upgrade
 
 type Api = "foo" :> ReqBody '[VersionedJSON] (Foo V2) :> Post '[JSON] (Foo V2)
+      :<|> "getFoo" :> Get '[VersionedJSON] (Maybe (Foo V2))
 
 server :: Server Api
-server = pure
+server = pure :<|> return (Just foo2)
 
 app :: Application
 app = serve (Proxy :: Proxy Api) server
