@@ -21,7 +21,7 @@ library
                      , Versioning.Upgrade
                      , Versioning.JSON
   other-modules:       Versioning.Internal.Equality
-  build-depends:       base >=4.10 && <4.12
+  build-depends:       base >=4.10 && <5
                      , aeson >=1.0 && <1.5
                      , bytestring >=0.10 && <0.11
                      , semigroupoids >=5 && <6
@@ -33,7 +33,7 @@ test-suite tests
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
   other-modules:       Tests.Versioning.Fixtures
-  build-depends:       base >=4.10 && <4.12
+  build-depends:       base >=4.10 && <5
                      , aeson >=1.0 && <1.5
                      , bytestring >=0.10 && <0.11
                      , hspec >=2.0 && <2.6
