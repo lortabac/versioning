@@ -16,7 +16,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Versioning.Servant
-  build-depends:       base >=4.10 && <4.12
+  build-depends:       base >=4.10 && <5
                      , aeson >=1.0 && <1.5
                      , attoparsec
                      , bytestring >=0.10 && <0.11
@@ -31,7 +31,7 @@ test-suite tests
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
   other-modules:       Tests.Versioning.Servant.Fixtures
-  build-depends:       base >=4.10 && <4.12
+  build-depends:       base >=4.10 && <5
                      , aeson >=1.0 && <1.5
                      , bytestring >=0.10 && <0.11
                      , hspec >=2.0 && <2.6
