@@ -1,5 +1,5 @@
 name:                versioning-servant
-version:             0.1.0.0
+version:             0.1.0.1
 synopsis:            Servant combinators for the versioning library.
 description:         This package provides Servant combinators to be used with
                      the 'versioning' library.

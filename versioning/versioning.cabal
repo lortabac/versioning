@@ -1,5 +1,5 @@
 name:                versioning
-version:             0.3.0.0
+version:             0.3.0.1
 synopsis:            Type-safe data versioning.
 description:         This package provides various tools to deal with
                      data versioning in a type-safe way.
