@@ -5,6 +5,7 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -18,6 +19,7 @@ import           GHC.Generics         (Generic)
 
 import           Versioning.Base
 import           Versioning.JSON
+import           Versioning.Singleton
 import           Versioning.Upgrade
 
 data Foo v = Foo
@@ -109,3 +111,17 @@ fooJsonV0 = "{\"always\":1, \"untilV1\": 3.14}"
 
 fooJsonV2 :: LazyBS.ByteString
 fooJsonV2 = "{\"always\":1, \"sinceV1\": true, \"sinceV2\": \"hello\"}"
+
+showAnyFoo :: forall v. SVI v => Foo v -> String
+showAnyFoo foo = case sv @v of
+    SV0 -> show foo
+    SV1 -> show foo
+    SV2 -> show foo
+    _   -> error "Unexpected version"
+
+useAnyFoo :: forall v. SVI v => Foo v -> IO String
+useAnyFoo foo = case sv @v of
+    SV0 -> pure (show foo)
+    SV1 -> pure (show foo)
+    SV2 -> pure (show foo)
+    _   -> error "Unexpected version"

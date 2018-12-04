@@ -5,10 +5,12 @@ import           Test.Hspec
 
 import           Versioning.Base
 import           Versioning.JSON
+import qualified Versioning.Singleton.JSON as Sing
 import           Versioning.Upgrade
 
 import           Tests.Versioning.Fixtures (Foo (..), SumType (..), foo0, foo2,
-                                            fooJsonV0, fooJsonV2, sumType)
+                                            fooJsonV0, fooJsonV2, showAnyFoo,
+                                            sumType, useAnyFoo)
 
 main :: IO ()
 main = hspec $ do
@@ -46,15 +48,25 @@ main = hspec $ do
 
     describe "WithAnyVersion" $ do
         -- Decode a Foo and return its string representation without upgrading it
-        it "Can apply a function on the decoded object" $ do
+        it "Can apply a function to the decoded object" $ do
             let Just res = withJsonAnyVersion @Show @Foo @V2 show fooJsonV0
             res `shouldBe` show foo0
 
     describe "WithAnyVersionFrom" $ do
-        it "Can apply a function on the decoded object" $ do
+        it "Can apply a function to the decoded object" $ do
             let Just res = withJsonAnyVersionFrom @V1 @Show @Foo @V2 show fooJsonV2
             res `shouldBe` show foo2
 
         it "Should not decode V0" $ do
             let res = withJsonAnyVersionFrom @V1 @Show @Foo @V2 show fooJsonV0
             res `shouldBe` (Nothing :: Maybe String)
+
+    describe "Singleton-based WithAnyVersion" $ do
+        -- Decode a Foo and return its string representation without upgrading it
+        it "Can apply a function to the decoded object" $ do
+            let res = Sing.withJsonAnyVersion @V0 showAnyFoo fooJsonV0
+            res `shouldBe` Just (show foo0)
+
+        it "Can apply an effectful action to the decoded object" $ do
+            let res = Sing.withJsonAnyVersionM @V0 useAnyFoo fooJsonV0
+            res `shouldReturn` Just (show foo0)

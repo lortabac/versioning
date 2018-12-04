@@ -76,7 +76,7 @@ import           Numeric.Natural          (Natural)
 import           Versioning.Internal.Base (Bare)
 
 -- | The version of a data model
-data V = VZero | VSucc V deriving (Eq, Show)
+data V = VZero | VSucc V deriving (Eq, Ord, Show)
 
 -- | Get the previous version
 type family VPred (v :: V) :: V where

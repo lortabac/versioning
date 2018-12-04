@@ -18,6 +18,9 @@ library
   exposed-modules:     Versioning.Base
                      , Versioning.Internal.Base
                      , Versioning.Internal.Decoding
+                     , Versioning.Singleton
+                     , Versioning.Singleton.Internal.Decoding
+                     , Versioning.Singleton.JSON
                      , Versioning.Upgrade
                      , Versioning.JSON
   other-modules:       Versioning.Internal.Equality
