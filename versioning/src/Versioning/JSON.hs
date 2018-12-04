@@ -32,6 +32,11 @@ module Versioning.JSON
   , withJsonAnyVersionEitherM
   , withJsonAnyVersionEitherStrictM
   , withJsonAnyVersionFromM
+    -- * Decoders
+  , jsonDecode
+  , jsonDecodeStrict
+  , jsonEitherDecode
+  , jsonEitherDecodeStrict
   )
 where
 
