@@ -39,7 +39,9 @@ module Versioning.Base (
     , VNat
     , VCmp
     , Since
+    , SinceS
     , Until
+    , UntilS
     , NA
     , na
     , V0
@@ -107,24 +109,36 @@ versionNumber _ = natVal (Proxy :: Proxy (VNat v))
 --   The first parameter is the version in which the field has been introduced,
 --   the second parameter is the actual version of the data-type.
 type family Since (s :: V) (v :: V) a where
-    Since s v a = Since' (VCmp s v) a
+    Since s v a = Since' (VCmp s v) a NA
 
-type family Since' (o :: Ordering) a :: * where
-    Since' 'LT a = a
-    Since' 'EQ a = a
-    Since' 'GT a = NA
+-- | Same as 'Since', for sum types.
+--   The only difference between 'Since' and 'SinceS' is in the type used to
+--   indicate absence.
+--   In 'Since' absence is expressed with 'NA', which is isomorphic to '()'.
+--   In 'SinceS' it is expressed with 'Bare', which is isomorphic to 'Void'.
+type family SinceS (s :: V) (v :: V) a where
+    SinceS s v a = Since' (VCmp s v) a Bare
+
+type family Since' (o :: Ordering) a absent :: * where
+    Since' 'LT a _ = a
+    Since' 'EQ a _ = a
+    Since' 'GT a absent = absent
 
 -- | This allows us to express that a field is only present until
 --   a given version.
 --   The first parameter is the last version in which the field is present,
 --   the second parameter is the actual version of the data-type.
 type family Until (u :: V) (v :: V) a where
-    Until u v a = Until' (VCmp u v) a
+    Until u v a = Until' (VCmp u v) a NA
 
-type family Until' (o :: Ordering) a :: * where
-    Until' 'GT a = a
-    Until' 'EQ a = a
-    Until' 'LT a = NA
+-- | Same as 'Until', for sum types.
+type family UntilS (u :: V) (v :: V) a where
+    UntilS u v a = Until' (VCmp u v) a Bare
+
+type family Until' (o :: Ordering) a absent :: * where
+    Until' 'GT a _ = a
+    Until' 'EQ a _ = a
+    Until' 'LT a absent = absent
 
 -- | A type indicating absence.
 --   The 'Maybe' is a hack needed to let aeson parse a record successfully even

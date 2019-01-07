@@ -13,8 +13,8 @@
 module Tests.Versioning.Fixtures where
 
 import           Data.Aeson
-import qualified Data.ByteString.Lazy  as LazyBS
-import           GHC.Generics          (Generic)
+import qualified Data.ByteString.Lazy as LazyBS
+import           GHC.Generics         (Generic)
 
 import           Versioning.Base
 import           Versioning.JSON
@@ -44,6 +44,17 @@ deriving instance Show (Foo V0)
 deriving instance Show (Foo V1)
 
 deriving instance Show (Foo V2)
+
+data SumType v = A
+               | B
+               | MkFoo (SinceS V1 v ()) -- This constructor cannot be used before V1
+
+sumType :: SumType V1
+sumType = MkFoo ()
+
+deriving instance Eq (SumType V1)
+
+deriving instance Show (SumType V1)
 
 -- How to upcast from V1 to V2
 instance Adapt V0 V1 Foo where

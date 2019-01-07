@@ -7,14 +7,20 @@ import           Versioning.Base
 import           Versioning.JSON
 import           Versioning.Upgrade
 
-import           Tests.Versioning.Fixtures (Foo (..), foo0, foo2, fooJsonV0,
-                                            fooJsonV2)
+import           Tests.Versioning.Fixtures (Foo (..), SumType (..), foo0, foo2,
+                                            fooJsonV0, fooJsonV2, sumType)
 
 main :: IO ()
 main = hspec $ do
     describe "Versioning" $ do
         it "Can get the version number of a record" $
             versionNumber foo0 `shouldBe` 0
+
+        it "Can read versioned record fields if present at given version" $
+            sinceV2 foo2 `shouldBe` "hello"
+
+        it "Can read versioned sum-type constructors if present at given version" $
+            sumType `shouldBe` MkFoo ()
 
     describe "Upgrade" $ do
         it "Can upgrade across two versions" $
