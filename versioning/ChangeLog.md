@@ -1,5 +1,11 @@
 # Revision history
 
+## 0.3.1.0
+
+- Add `SinceS` to version sum types
+
+- Add `downgrade` for version downcasting
+
 ## 0.3.0.0
 
 - Encode `V` inductively
