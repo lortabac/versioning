@@ -24,7 +24,11 @@ main = hspec $ do
 
     describe "Upgrade" $ do
         it "Can upgrade across two versions" $
-            upgrade @V0 foo0 `shouldBe` foo2
+            upgrade foo0 `shouldBe` foo2
+
+    describe "Downgrade" $ do
+        it "Can downgrade across two versions" $
+            downgrade foo2 `shouldBe` foo0
 
     describe "DecodeAnyVersion" $ do
         it "Can decode from V0" $
