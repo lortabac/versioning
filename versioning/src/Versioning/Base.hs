@@ -23,6 +23,7 @@
 --
 --   Please note that some classes may require a separate standalone deriving clause
 --   for each version of a data-type or some kind of inductive deriving mechanism.
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE ExplicitNamespaces    #-}
 {-# LANGUAGE FlexibleContexts      #-}
@@ -42,6 +43,8 @@ module Versioning.Base (
     , SinceS
     , Until
     , UntilS
+    , VGreaterThan
+    , VLTEQ
     , NA
     , na
     , V0
@@ -69,7 +72,9 @@ module Versioning.Base (
     , versionNumber
 ) where
 
+import           Data.Kind                (Constraint)
 import           Data.Proxy               (Proxy (..))
+import           GHC.TypeLits             (ErrorMessage (..), TypeError)
 import           GHC.TypeNats             (type (+), KnownNat, Nat, natVal)
 import           Numeric.Natural          (Natural)
 
@@ -139,6 +144,29 @@ type family Until' (o :: Ordering) a absent :: * where
     Until' 'GT a _ = a
     Until' 'EQ a _ = a
     Until' 'LT a absent = absent
+
+-- | Constraint expressing than the version in the second argument is greater
+--   than the one in the first.
+type family VGreaterThan (v :: V) (w :: V) :: Constraint where
+    VGreaterThan v w = VGreaterThan' (VCmp w v) v w
+
+type family VGreaterThan' (o :: Ordering) (v :: V) (w :: V) :: Constraint where
+    VGreaterThan' 'GT _ _ = ()
+    VGreaterThan' _ v w = TypeError ('ShowType w
+                               ':<>: 'Text " should be greater than "
+                               ':<>: 'ShowType v)
+
+-- | Constraint expressing than the version in the second argument is less than
+--   or equal to the one in the first.
+type family VLTEQ (v :: V) (w :: V) :: Constraint where
+    VLTEQ v w = VLTEQ' (VCmp w v) v w
+
+type family VLTEQ' (o :: Ordering) (v :: V) (w :: V) :: Constraint where
+    VLTEQ' 'EQ _ _ = ()
+    VLTEQ' 'LT _ _ = ()
+    VLTEQ' _ v w = TypeError ('ShowType w
+                        ':<>: 'Text " should be less than or equal to "
+                        ':<>: 'ShowType v)
 
 -- | A type indicating absence.
 --   The 'Maybe' is a hack needed to let aeson parse a record successfully even

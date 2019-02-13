@@ -112,12 +112,12 @@ fooJsonV0 = "{\"always\":1, \"untilV1\": 3.14}"
 fooJsonV2 :: LazyBS.ByteString
 fooJsonV2 = "{\"always\":1, \"sinceV1\": true, \"sinceV2\": \"hello\"}"
 
-showAnyFoo :: forall v. SVI v => Foo v -> String
+showAnyFoo :: forall v. (In '[V0, V1, V2] v, SVI v) => Foo v -> String
 showAnyFoo foo = case sv @v of
     SV0 -> show foo
     SV1 -> show foo
     SV2 -> show foo
-    _   -> error "Unexpected version"
+    -- SVGreaterThan2 -> error "Unexpected version"
 
 useAnyFoo :: forall v. SVI v => Foo v -> IO String
 useAnyFoo foo = case sv @v of

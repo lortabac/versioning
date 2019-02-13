@@ -46,6 +46,10 @@ module Versioning.Singleton
   , pattern SV18
   , pattern SV19
   , pattern SV20
+  , pattern SVGreaterThan0
+  , pattern SVGreaterThan1
+  , pattern SVGreaterThan2
+  , pattern SVGreaterThan3
   )
 where
 
@@ -195,3 +199,19 @@ pattern SV19 = SVSucc SV18
 
 pattern SV20 :: () => (v ~ V20) => SV v
 pattern SV20 = SVSucc SV19
+
+pattern SVGreaterThan0 :: () => (VGreaterThan V0 v) => SV v
+pattern SVGreaterThan0 <- SVSucc _
+{-# COMPLETE SV0, SVGreaterThan0 #-}
+
+pattern SVGreaterThan1 :: () => (VGreaterThan V1 v) => SV v
+pattern SVGreaterThan1 <- SVSucc (SVSucc _)
+{-# COMPLETE SV0, SV1, SVGreaterThan1 #-}
+
+pattern SVGreaterThan2 :: () => (VGreaterThan V2 v) => SV v
+pattern SVGreaterThan2 <- SVSucc (SVSucc (SVSucc _))
+{-# COMPLETE SV0, SV1, SV2, SVGreaterThan2 #-}
+
+pattern SVGreaterThan3 :: () => (VGreaterThan V3 v) => SV v
+pattern SVGreaterThan3 <- SVSucc (SVSucc (SVSucc (SVSucc _)))
+{-# COMPLETE SV0, SV1, SV2, SV3, SVGreaterThan3 #-}
