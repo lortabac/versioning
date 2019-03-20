@@ -17,6 +17,7 @@ module Versioning.Singleton
   , svPred
   , SVI(..)
   , SomeSV(..)
+  , AtSomeV(..)
   , fromSV
   , toSomeSV
   , withSV
@@ -53,6 +54,8 @@ module Versioning.Singleton
   )
 where
 
+import           Data.Aeson         (ToJSON, toEncoding, toJSON)
+import           Data.Kind          (Type)
 import           Data.Type.Equality ((:~:) (..), TestEquality (..))
 import           Numeric.Natural    (Natural)
 
@@ -98,6 +101,14 @@ instance Ord SomeSV where
 
 mapSomeSVUp :: (forall v . SV v -> SV (VSucc v)) -> SomeSV -> SomeSV
 mapSomeSVUp k (SomeSV x) = SomeSV (k x)
+
+-- | A value at a given version
+data AtSomeV (a :: V -> Type) where
+    AtSomeV :: ToJSON (a v) => a v -> AtSomeV a
+
+instance ToJSON (AtSomeV a) where
+    toJSON = toJSON
+    toEncoding = toEncoding
 
 -- | Convert an 'SV' to the corresponding 'V'
 fromSV :: SV v -> V

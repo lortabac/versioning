@@ -20,100 +20,47 @@ import           Versioning.JSON                        (jsonDecode,
                                                          jsonDecodeStrict,
                                                          jsonEitherDecode,
                                                          jsonEitherDecodeStrict)
-import           Versioning.Singleton                   (SVI)
+import           Versioning.Singleton
 import           Versioning.Singleton.Internal.Decoding
 
 -- | Decode a JSON string by trying all the versions decrementally
---   and apply an action to the decoded object at its original version.
-withJsonAnyVersionM
-  :: forall v a m r
-   . (WithAnyVersion v a FromJSON, Applicative m)
-  => (forall w. SVI w => a w -> m r)
-  -> LazyBS.ByteString
-  -> m (Maybe r)
-withJsonAnyVersionM = withAnyVersionM @v @a jsonDecode
-
--- | Like 'withJsonAnyVersionM' but it reads from a strict 'ByteString'
-withJsonAnyVersionStrictM
-  :: forall v a m r
-   . (WithAnyVersion v a FromJSON, Applicative m)
-  => (forall w. SVI w => a w -> m r)
-  -> StrictBS.ByteString
-  -> m (Maybe r)
-withJsonAnyVersionStrictM = withAnyVersionM @v @a jsonDecodeStrict
-
--- | Like 'withJsonAnyVersionM' but returns a message when decoding fails
-withJsonAnyVersionEitherM
-  :: forall v a m r
-   . (WithAnyVersion v a FromJSON, Applicative m)
-  => (forall w. SVI w => a w -> m r)
-  -> LazyBS.ByteString
-  -> m (Either String r)
-withJsonAnyVersionEitherM = withAnyVersionM @v @a jsonEitherDecode
-
--- | Like 'withJsonAnyVersionStrictM' but returns a message when decoding fails
-withJsonAnyVersionEitherStrictM
-  :: forall v a m r
-   . (WithAnyVersion v a FromJSON, Applicative m)
-  => (forall w. SVI w => a w -> m r)
-  -> StrictBS.ByteString
-  -> m (Either String r)
-withJsonAnyVersionEitherStrictM =
-  withAnyVersionM @v @a jsonEitherDecodeStrict
-
--- | Like 'withJsonAnyVersionM', with an additional type-parameter
---   indicating the oldest version you want to be able to decode
-withJsonAnyVersionFromM
-  :: forall from v a m r
-   . (WithAnyVersionFrom from v a FromJSON, Applicative m)
-  => (forall w. SVI w => a w -> m r)
-  -> LazyBS.ByteString
-  -> m (Maybe r)
-withJsonAnyVersionFromM = withAnyVersionFromM @from @v @a jsonDecode
-
--- | Decode a JSON string by trying all the versions decrementally
 --   and apply a pure function to the decoded object at its original version.
-withJsonAnyVersion
-  :: forall v a r
-   . (WithAnyVersion v a FromJSON)
-  => (forall w. SVI w => a w -> r)
-  -> LazyBS.ByteString
-  -> Maybe r
-withJsonAnyVersion = withAnyVersion @v @a jsonDecode
+decodeJsonSomeVersion
+  :: forall v a
+   . (DecodeSomeVersion v a FromJSON)
+  => LazyBS.ByteString
+  -> Maybe (AtSomeV a)
+decodeJsonSomeVersion = decodeSomeVersion @v @a jsonDecode
 
--- | Like 'withJsonAnyVersion' but it reads from a strict 'ByteString'
-withJsonAnyVersionStrict
-  :: forall v a r
-   . (WithAnyVersion v a FromJSON)
-  => (forall w. SVI w => a w -> r)
-  -> StrictBS.ByteString
-  -> Maybe r
-withJsonAnyVersionStrict = withAnyVersion @v @a jsonDecodeStrict
+-- | Like 'decodeJsonSomeVersion' but it reads from a strict 'ByteString'
+decodeJsonSomeVersionStrict
+  :: forall v a
+   . (DecodeSomeVersion v a FromJSON)
+  => StrictBS.ByteString
+  -> Maybe (AtSomeV a)
+decodeJsonSomeVersionStrict = decodeSomeVersion @v @a jsonDecodeStrict
 
--- | Like 'withJsonAnyVersion' but returns a message when decoding fails
-withJsonAnyVersionEither
-  :: forall v a r
-   . (WithAnyVersion v a FromJSON)
-  => (forall w. SVI w => a w -> r)
-  -> LazyBS.ByteString
-  -> Either String r
-withJsonAnyVersionEither = withAnyVersion @v @a jsonEitherDecode
+-- | Like 'decodeJsonSomeVersion' but returns a message when decoding fails
+decodeJsonSomeVersionEither
+  :: forall v a
+   . (DecodeSomeVersion v a FromJSON)
+  => LazyBS.ByteString
+  -> Either String (AtSomeV a)
+decodeJsonSomeVersionEither = decodeSomeVersion @v @a jsonEitherDecode
 
--- | Like 'withJsonAnyVersionStrict' but returns a message when decoding fails
-withJsonAnyVersionEitherStrict
-  :: forall v a r
-   . (WithAnyVersion v a FromJSON)
-  => (forall w. SVI w => a w -> r)
-  -> StrictBS.ByteString
-  -> Either String r
-withJsonAnyVersionEitherStrict = withAnyVersion @v @a jsonEitherDecodeStrict
+-- | Like 'decodeJsonSomeVersionStrict' but returns a message when decoding fails
+decodeJsonSomeVersionEitherStrict
+  :: forall v a
+   . (DecodeSomeVersion v a FromJSON)
+  => StrictBS.ByteString
+  -> Either String (AtSomeV a)
+decodeJsonSomeVersionEitherStrict = decodeSomeVersion @v @a jsonEitherDecodeStrict
 
--- | Like 'withJsonAnyVersion', with an additional type-parameter
+-- | Like 'decodeJsonSomeVersion', with an additional type-parameter
 --   indicating the oldest version you want to be able to decode
-withJsonAnyVersionFrom
-  :: forall from v a r
-   . (WithAnyVersionFrom from v a FromJSON)
-  => (forall w. SVI w => a w -> r)
-  -> LazyBS.ByteString
-  -> Maybe r
-withJsonAnyVersionFrom = withAnyVersionFrom @from @v @a jsonDecode
+decodeJsonSomeVersionFrom
+  :: forall from v a
+   . (DecodeSomeVersionFrom from v a FromJSON)
+  => LazyBS.ByteString
+  -> Maybe (AtSomeV a)
+decodeJsonSomeVersionFrom = decodeSomeVersionFrom @from @v @a jsonDecode
