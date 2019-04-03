@@ -1,15 +1,16 @@
-{-# LANGUAGE AllowAmbiguousTypes   #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE ExplicitNamespaces    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE AllowAmbiguousTypes     #-}
+{-# LANGUAGE ConstraintKinds         #-}
+{-# LANGUAGE DataKinds               #-}
+{-# LANGUAGE ExplicitNamespaces      #-}
+{-# LANGUAGE FlexibleContexts        #-}
+{-# LANGUAGE FlexibleInstances       #-}
+{-# LANGUAGE MultiParamTypeClasses   #-}
+{-# LANGUAGE ScopedTypeVariables     #-}
+{-# LANGUAGE TypeApplications        #-}
+{-# LANGUAGE TypeFamilies            #-}
+{-# LANGUAGE TypeOperators           #-}
+{-# LANGUAGE UndecidableInstances    #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 module Versioning.Upgrade
   ( Adapt (..)
     -- * Upgrading
@@ -68,12 +69,12 @@ type Downgrade v w a = Downgrade' (v == w) v w a
 --   You do not need to define any instance.
 --   They are derived automatically if all the intermediary
 --   'Adapt' instances are defined.
-class Downgrade' (eq :: Bool) (v :: V) (w :: V) (a :: V -> Type) where
+class (VLTEQ v w) => Downgrade' (eq :: Bool) (v :: V) (w :: V) (a :: V -> Type) where
     downgrade' :: a v -> a w
 
-instance (v ~ w) => Downgrade' 'True v w a where
+instance (v ~ w, VLTEQ w w) => Downgrade' 'True v w a where
     downgrade' x = x
 
-instance (Adapt v (VPred v) a, Downgrade' (VPred v == w) (VPred v) w a)
+instance (Adapt v (VPred v) a, Downgrade' (VPred v == w) (VPred v) w a, VLTEQ v w)
   => Downgrade' 'False v w a where
     downgrade' x = downgrade' @(VPred v == w) @(VPred v) @w (adapt @v @(VPred v) x)

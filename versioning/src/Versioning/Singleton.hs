@@ -104,7 +104,7 @@ mapSomeSVUp k (SomeSV x) = SomeSV (k x)
 
 -- | A value at a given version
 data AtSomeV (a :: V -> Type) where
-    AtSomeV :: ToJSON (a v) => a v -> AtSomeV a
+    AtSomeV :: ToJSON (a v) => SV v -> a v -> AtSomeV a
 
 instance ToJSON (AtSomeV a) where
     toJSON = toJSON

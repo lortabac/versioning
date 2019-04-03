@@ -15,10 +15,7 @@ module Versioning.Servant.Dependent
   )
 where
 
-import           Data.Aeson                       (FromJSON, ToJSON, encode,
-                                                   parseJSON)
-import           Data.Aeson.Parser                (value)
-import           Data.Aeson.Types                 (parseEither)
+import           Data.Aeson                       (encode)
 import           Data.Attoparsec.ByteString.Char8 (endOfInput, parseOnly,
                                                    skipSpace, (<?>))
 import qualified Data.ByteString.Lazy             as LazyBS
@@ -32,7 +29,6 @@ import           Servant.API
 import           Servant.API.ContentTypes         (eitherDecodeLenient)
 import           Versioning.Base
 import           Versioning.Internal.Decoding
-import           Versioning.JSON
 import           Versioning.Singleton
 
 -- | Drop-in replacement for the 'JSON' data-type
@@ -50,7 +46,7 @@ instance Accept (EncodedJSONFrom from) where
 
 -- We add a redundant 'JsonDecodableTo' constraint to minimize the risk
 -- of using the 'EncodedJSON' type in the wrong place
-instance {-# OVERLAPPABLE #-} ToJSON (AtSomeV a) => MimeRender (EncodedJSONFrom from) (AtSomeV a) where
+instance {-# OVERLAPPABLE #-} MimeRender (EncodedJSONFrom from) (AtSomeV a) where
     mimeRender _ = encode
 
 instance FromHttpApiData V where
@@ -60,6 +56,3 @@ instance FromHttpApiData V where
 
 instance ToHttpApiData V where
     toUrlPiece = Text.cons 'v' <$> (toUrlPiece . vToNum)
-
-instance FromHttpApiData SomeSV where
-    parseUrlPiece x = toSomeSV <$> parseUrlPiece @V x

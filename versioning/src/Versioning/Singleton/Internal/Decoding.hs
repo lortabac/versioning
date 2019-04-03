@@ -63,11 +63,11 @@ class DecodeSomeVersion' (eq :: Bool) (from :: V) (v :: V) (a :: V -> Type) dec 
 
 instance (from ~ v, dec (a from), SVI v, ToJSON (a v))
   => DecodeSomeVersion' 'True from v a dec where
-    decodeSomeVersion' (Decoder decode) bs = AtSomeV <$> decode @from bs
+    decodeSomeVersion' (Decoder decode) bs = AtSomeV sv <$> decode @from bs
 
 instance (DecodeSomeVersion' (VPred v == from) from (VPred v) a dec, dec (a v), dec (a (VPred v)), SVI v, SVI (VPred v), ToJSON (a v), ToJSON (a (VPred v)))
   => DecodeSomeVersion' 'False from v a dec where
-    decodeSomeVersion' dec@(Decoder decode) bs = (AtSomeV <$> res) <!> next
+    decodeSomeVersion' dec@(Decoder decode) bs = (AtSomeV sv <$> res) <!> next
       where
         res = decode @v bs
         next = decodeSomeVersion' @(VPred v == from) @from @(VPred v) @a dec bs
