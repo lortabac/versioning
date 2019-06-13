@@ -28,17 +28,17 @@ import           Versioning.Singleton
 import           Versioning.Upgrade
 
 type Api = "foo" :> ReqBody '[VersionedJSON] (Foo V2) :> Post '[JSON] (Foo V2)
-      :<|> "dep" :> Capture "v" V :> Get '[EncodedJSON] (Maybe (AtSomeV Foo))
+      :<|> "dep" :> Capture "v" V :> Get '[EncodedJSON] (AtSomeV Foo)
 
 server :: Server Api
 server = pure :<|> dep
 
-dep :: V -> Maybe (AtSomeV Foo)
+dep :: V -> Handler (AtSomeV Foo)
 dep v = withSV v $ \s -> case s of
-    SV0 -> Just $ AtSomeV sv (downgrade @V2 @V0 foo2)
-    SV1 -> Just $ AtSomeV sv (downgrade @V2 @V1 foo2)
-    SV2 -> Just $ AtSomeV sv (downgrade @V2 @V2 foo2)
-    _   -> Nothing
+    SV0 -> pure $ AtSomeV sv (downgrade @_ @V0 foo2)
+    SV1 -> pure $ AtSomeV sv (downgrade @_ @V1 foo2)
+    SV2 -> pure $ AtSomeV sv foo2
+    _   -> throwError err404
 
 app :: Application
 app = serve (Proxy :: Proxy Api) server

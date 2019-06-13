@@ -102,7 +102,8 @@ instance Ord SomeSV where
 mapSomeSVUp :: (forall v . SV v -> SV (VSucc v)) -> SomeSV -> SomeSV
 mapSomeSVUp k (SomeSV x) = SomeSV (k x)
 
--- | A value at a given version
+-- | A value at a given version.
+--   You need to pattern-match on the singleton to recover the version
 data AtSomeV (a :: V -> Type) where
     AtSomeV :: ToJSON (a v) => SV v -> a v -> AtSomeV a
 
