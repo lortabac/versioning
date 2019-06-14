@@ -13,6 +13,7 @@ category:            Data
 build-type:          Simple
 extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
+Tested-With: GHC ==8.6.4 || ==8.4.4 || ==8.2.2
 
 library
   exposed-modules:     Versioning.Servant
