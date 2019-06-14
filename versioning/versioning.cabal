@@ -36,7 +36,7 @@ test-suite tests
   build-depends:       base >=4.10 && <5
                      , aeson >=1.0 && <1.5
                      , bytestring >=0.10 && <0.11
-                     , hspec >=2.0 && <2.6
+                     , hspec
                      , versioning
   hs-source-dirs:      tests
   default-language:    Haskell2010
