@@ -1,5 +1,5 @@
 name:                versioning
-version:             0.3.1.0
+version:             0.3.2.0
 synopsis:            Type-safe data versioning.
 description:         This package provides various tools to deal with
                      data versioning in a type-safe way.
@@ -23,7 +23,7 @@ library
                      , Versioning.JSON
   other-modules:       Versioning.Internal.Equality
   build-depends:       base >=4.10 && <5
-                     , aeson >=1.0 && <1.5
+                     , aeson >=1.0 && <2.1
                      , bytestring >=0.10 && <0.11
                      , semigroupoids >=5 && <6
   hs-source-dirs:      src
@@ -34,9 +34,9 @@ test-suite tests
   type:                exitcode-stdio-1.0
   main-is:             Main.hs
   other-modules:       Tests.Versioning.Fixtures
-  build-depends:       base >=4.10 && <5
-                     , aeson >=1.0 && <1.5
-                     , bytestring >=0.10 && <0.11
+  build-depends:       base
+                     , aeson
+                     , bytestring
                      , hspec
                      , versioning
   hs-source-dirs:      tests
