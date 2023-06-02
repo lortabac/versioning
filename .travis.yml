@@ -30,6 +30,10 @@ before_cache:
 
 matrix:
   include:
+    - compiler: "ghc-9.2.7"
+      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-3.6,ghc-9.2.7], sources: [hvr-ghc]}}
+    - compiler: "ghc-9.0.2"
+      addons: {apt: {packages: [ghc-ppa-tools,cabal-install-3.6,ghc-9.0.2], sources: [hvr-ghc]}}
     - compiler: "ghc-8.10.7"
       addons: {apt: {packages: [ghc-ppa-tools,cabal-install-2.4,ghc-8.10.7], sources: [hvr-ghc]}}
     - compiler: "ghc-8.8.4"
